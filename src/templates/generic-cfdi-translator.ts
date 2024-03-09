@@ -326,6 +326,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
     protected generateCurrencyRelatedInfo(comprobante: CNodeInterface): Content {
         const totalImpuestosTrasladados = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosTrasladados');
         const totalImpuestosRetenidos = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosRetenidos');
+        const totalTasasTraslados = comprobante.searchNodes("cfdi:Impuestos", "cfdi:Traslados", "cfdi:Traslado");
         const contentColumns: Column[] = [];
         const relatedInfoAndImport: Column[] = [];
         if (comprobante.get('TipoDeComprobante') !== 'P') {
@@ -407,6 +408,8 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     body: [
                         ['SUBTOTAL:', { text: formatCurrency(comprobante.get('SubTotal')), fontSize: 9 }],
                         ['DESCUENTO:', formatCurrency(comprobante.get('Descuento'))],
+                        ["SUBTOTAL T16:", formatCurrency(totalTasasTraslados[0]!=undefined ? totalTasasTraslados[0].get("Base") : 0.00)],
+                        ["SUBTOTAL T0:", formatCurrency(totalTasasTraslados[1]!=undefined ? totalTasasTraslados[1].get("Base") : 0.00)],
                         ['TOTAL IMP. TRASLADADOS:', formatCurrency(totalImpuestosTrasladados)],
                         ['TOTAL IMP. RETENIDOS:', formatCurrency(totalImpuestosRetenidos)],
                         [
