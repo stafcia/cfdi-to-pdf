@@ -13,7 +13,8 @@ export class RetencionesData extends AbstractInvoiceData {
         qrUrl: string,
         tfdSourceString: string,
         logo?: string,
-        additionalFields?: { title: string; value: string }[]
+        additionalFields?: { title: string; value: string }[],
+        additionalFieldsUP?: { title: string; value: string }[]
     ) {
         super();
         const emisor = retenciones.searchNode('retenciones:Emisor');
@@ -47,6 +48,7 @@ export class RetencionesData extends AbstractInvoiceData {
         this._tfdSourceString = tfdSourceString;
         this._logo = logo;
         this._additionalFields = additionalFields;
+        this._additionalFieldsUP = additionalFieldsUP;
         if (this._qrUrl.trim().length === 0) {
             this.buildUrlQr(this._retenciones);
         }

@@ -71,8 +71,8 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     table: {
                         widths: ['auto', 'auto'],
                         body: [
-                            ['SERIE:', comprobante.get('Serie')],
-                            ['FOLIO:', comprobante.get('Folio')],
+                            ['SERIE:',{text:comprobante.get('Serie'), style: 'serieAndFolio'}],
+                            ['FOLIO:', {text:comprobante.get('Folio'), style: 'serieAndFolio'}],
                             ['FECHA:', comprobante.get('Fecha')],
                             ['EXPEDICIÓN:', comprobante.get('LugarExpedicion')],
                             ['COMPROBANTE:', comprobante.get('TipoDeComprobante')],
@@ -84,7 +84,8 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
             ]
         };
         if (logo) {
-            (header.columns[0] as ContentTable).table.body[0][0] = { image: logo, fit: [80, 80] };
+            //Se modifico para poner el logo de salsa de [80, 80]
+            (header.columns[0] as ContentTable).table.body[0][0] = { image: logo, fit: [302, 90] };
             (header.columns[0] as ContentTable).table.widths = ['*'];
         }
 
@@ -477,12 +478,27 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
         const receptor = cfdiData.receptor();
         const conceptos = comprobante.searchNodes('cfdi:Conceptos', 'cfdi:Concepto');
         const additionalFields = cfdiData.additionalFields();
+        const additionalFields2 = cfdiData.additionalFieldsUP();
 
         const content: Content[] = [];
         content.push(this.generateTopContent(comprobante, cfdiData.logo()));
         content.push('\n');
         content.push(this.generateEmisorContent(emisor));
         content.push('\n');
+        if (additionalFields2) {
+            additionalFields2.forEach((element) => {
+                content.push({
+                    style: 'tableContent',
+                    table: {
+                        widths: ['*'],
+                        body: [[{ text: element.title, style: 'tableHeader' }], [{text:element.value, style: 'infoHighlight'}]]
+                    },
+                    layout: 'lightHorizontalLines'
+                });
+                content.push('\n');
+            });
+        }
+        
         content.push(this.generateReceptorContent(receptor, cfdiData.address()));
         content.push('\n');
         if (comprobante.get('TipoDeComprobante') !== 'P') {
@@ -507,7 +523,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     style: 'tableContent',
                     table: {
                         widths: ['*'],
-                        body: [[{ text: element.title, style: 'tableHeader' }], [element.value]]
+                        body: [[{ text: element.title, style: 'tableHeader' }], [{text:element.value, style: 'infoHighlight'}]]
                     },
                     layout: 'lightHorizontalLines'
                 });
@@ -531,6 +547,16 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     bold: true,
                     fontSize: 10,
                     color: 'black'
+                },
+                infoHighlight: {
+                    fontSize: 11,
+                    color: 'black'
+                },
+                //Se agrega estilo para los datos grandes de serie y folio
+                serieAndFolio: {
+                    bold: true,
+                    fontSize: 15,
+                    color: 'red'
                 },
                 tableContent: {
                     fontSize: 8,

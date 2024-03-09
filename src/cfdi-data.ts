@@ -12,7 +12,8 @@ export class CfdiData extends AbstractInvoiceData {
         tfdSourceString: string,
         logo?: string,
         address?: string,
-        additionalFields?: { title: string; value: string }[]
+        additionalFields?: { title: string; value: string }[],
+        additionalFieldsUP?: { title: string; value: string }[]
     ) {
         super();
         const emisor = comprobante.searchNode('cfdi:Emisor');
@@ -37,6 +38,7 @@ export class CfdiData extends AbstractInvoiceData {
         this._logo = logo;
         this._address = address;
         this._additionalFields = additionalFields;
+        this._additionalFieldsUP = additionalFieldsUP;
         if (this._qrUrl.trim().length === 0) {
             this.buildUrlQr(this._comprobante);
         }

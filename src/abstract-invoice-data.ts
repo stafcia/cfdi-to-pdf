@@ -16,6 +16,8 @@ export abstract class AbstractInvoiceData {
 
     protected _additionalFields: { title: string; value: string }[] | undefined;
 
+    protected _additionalFieldsUP: { title: string; value: string }[] | undefined;
+
     public emisor(): CNodeInterface {
         return this._emisor;
     }
@@ -42,6 +44,10 @@ export abstract class AbstractInvoiceData {
 
     public additionalFields(): { title: string; value: string }[] | undefined {
         return this._additionalFields;
+    }
+
+    public additionalFieldsUP(): { title: string; value: string }[] | undefined {
+        return this._additionalFieldsUP;
     }
 
     public buildUrlQr(node: CNodeInterface): void {
