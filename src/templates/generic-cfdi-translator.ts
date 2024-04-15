@@ -71,8 +71,8 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     table: {
                         widths: ['auto', 'auto'],
                         body: [
-                            ['SERIE:',{text:comprobante.get('Serie'), style: 'serieAndFolio'}],
-                            ['FOLIO:', {text:comprobante.get('Folio'), style: 'serieAndFolio'}],
+                            ['SERIE:', { text: comprobante.get('Serie'), style: 'serieAndFolio' }],
+                            ['FOLIO:', { text: comprobante.get('Folio'), style: 'serieAndFolio' }],
                             ['FECHA:', comprobante.get('Fecha')],
                             ['EXPEDICIÓN:', comprobante.get('LugarExpedicion')],
                             ['COMPROBANTE:', comprobante.get('TipoDeComprobante')],
@@ -326,7 +326,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
     protected generateCurrencyRelatedInfo(comprobante: CNodeInterface): Content {
         const totalImpuestosTrasladados = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosTrasladados');
         const totalImpuestosRetenidos = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosRetenidos');
-        const totalTasasTraslados = comprobante.searchNodes("cfdi:Impuestos", "cfdi:Traslados", "cfdi:Traslado");
+        const totalTasasTraslados = comprobante.searchNodes('cfdi:Impuestos', 'cfdi:Traslados', 'cfdi:Traslado');
         const contentColumns: Column[] = [];
         const relatedInfoAndImport: Column[] = [];
         if (comprobante.get('TipoDeComprobante') !== 'P') {
@@ -397,7 +397,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
             }
         }
         contentColumns.push(relatedInfoAndImport);
-        if (comprobante.get('TipoDeComprobante') !== 'P') {
+        if (comprobante.get('TipoDeComprobante') !== 'P'&& comprobante.get('TipoDeComprobante') !== 'N') {
             contentColumns.push({
                 width: 'auto',
                 alignment: 'right',
@@ -408,8 +408,18 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     body: [
                         ['SUBTOTAL:', { text: formatCurrency(comprobante.get('SubTotal')), fontSize: 9 }],
                         ['DESCUENTO:', formatCurrency(comprobante.get('Descuento'))],
-                        ["SUBTOTAL T16:", formatCurrency(totalTasasTraslados[0]!=undefined ? totalTasasTraslados[0].get("Base") : 0.00)],
-                        ["SUBTOTAL T0:", formatCurrency(totalTasasTraslados[1]!=undefined ? totalTasasTraslados[1].get("Base") : 0.00)],
+                        [
+                            'SUBTOTAL T16:',
+                            formatCurrency(
+                                totalTasasTraslados[0] != undefined ? totalTasasTraslados[0].get('Base') : 0.0
+                            )
+                        ],
+                        [
+                            'SUBTOTAL T0:',
+                            formatCurrency(
+                                totalTasasTraslados[1] != undefined ? totalTasasTraslados[1].get('Base') : 0.0
+                            )
+                        ],
                         ['TOTAL IMP. TRASLADADOS:', formatCurrency(totalImpuestosTrasladados)],
                         ['TOTAL IMP. RETENIDOS:', formatCurrency(totalImpuestosRetenidos)],
                         [
@@ -424,6 +434,32 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                 },
                 layout: 'lightHorizontalLines'
             });
+        }
+        if(comprobante.get('TipoDeComprobante') === 'N'){
+            contentColumns.push({
+                width: 'auto',
+                alignment: 'right',
+                style: 'tableContent',
+                margin: [10, 0, 0, 0],
+                table: {
+                    widths: ['auto', 'auto'],
+                    body: [
+                        ['SUBTOTAL:', { text: formatCurrency(comprobante.get('SubTotal')), fontSize: 9 }],
+                        ['DESCUENTOS:', formatCurrency(comprobante.get('Descuento'))],
+                        ['RETENCIONES', formatCurrency(totalImpuestosRetenidos)],
+                        [
+                            {
+                                text: 'TOTAL RECIBO:',
+                                fontSize: 11,
+                                bold: true
+                            },
+                            { text: formatCurrency(comprobante.get('Total')), fontSize: 11, bold: true }
+                        ]
+                    ]
+                },
+                layout: 'lightHorizontalLines'
+            });
+        
         }
 
         return {
@@ -475,6 +511,170 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
         };
     }
 
+    protected generateNominaTopContent(comprobante: CNodeInterface): Content {
+        const nomina = comprobante.searchNode('cfdi:Complemento', 'nomina12:Nomina');
+        const receptor = comprobante.searchNode('cfdi:Receptor');
+        const nominaEmisor = comprobante.searchNode('cfdi:Complemento', 'nomina12:Nomina', 'nomina12:Emisor');
+        const nominaReceptor = comprobante.searchNode('cfdi:Complemento', 'nomina12:Nomina', 'nomina12:Receptor');
+
+        if (
+            nomina === undefined ||
+            nominaEmisor === undefined ||
+            nominaReceptor === undefined ||
+            receptor === undefined
+        )
+            return '';
+        console.log(nomina);
+        return {
+            style: 'tableContent',
+            table: {
+                widths: ['50%', '50%'],
+                body: [
+                    [
+                        {
+                            text: 'NOMINA',
+                            style: 'tableHeader',
+                            colSpan: 2,
+                            alignment: 'left'
+                        },
+                        {}
+                    ],
+                    [
+                        nominaReceptor.get('NumEmpleado') + ' - ' + receptor.get('Nombre'),
+                        'PERIODO DEL: ' + nomina.get('FechaInicialPago') + ' AL: ' + nomina.get('FechaFinalPago')
+                    ],
+                    [
+                        'RFC: \t' + receptor.get('Rfc'),
+                        'PEROIODICIDAD PAGO: \t' + nominaReceptor.get('PeriodicidadPago')
+                    ],
+                    ['CURP: \t' + nominaReceptor.get('Curp'), 'FECHA PAGO: \t' + nomina.get('FechaPago')],
+                    [
+                        'FECHA INI REL LABORAL: \t' + nominaReceptor.get('FechaInicioRelLaboral'),
+                        'PUESTO: \t' + nominaReceptor.get('Puesto')
+                    ],
+                    [
+                        'JORNADA: \t' + nominaReceptor.get('TipoJornada'),
+                        'DEPARTAMENTO: \t' + nominaReceptor.get('Departamento')
+                    ],
+                    [
+                        'NSS: \t' + nominaReceptor.get('NumSeguridadSocial'),
+                        'SBC: \t' + nominaReceptor.get('SalarioBaseCotApor')
+                    ],
+                    ['TIPO SALARIO: \t' + nominaReceptor.get('Curp'), ''],
+                    ['DOMICILIO FISCAL: \t' + receptor.get('DomicilioFiscalReceptor'), '']
+                ]
+            },
+            layout: 'lightHorizontalLines'
+        };
+    }
+
+    protected generateNominaMiddleContent(comprobante: CNodeInterface): Content {
+        const nominaPercepciones = comprobante.searchNodes(
+            'cfdi:Complemento',
+            'nomina12:Nomina',
+            'nomina12:Percepciones',
+            'nomina12:Percepcion'
+        );
+        const nominaDeducciones = comprobante.searchNodes(
+            'cfdi:Complemento',
+            'nomina12:Nomina',
+            'nomina12:Deducciones',
+            'nomina12:Deduccion'
+        );
+        const nominaOtrosPagos = comprobante.searchNodes(
+            'cfdi:Complemento',
+            'nomina12:Nomina',
+            'nomina12:OtrosPagos',
+            'nomina12:OtroPago'
+        );
+
+        if (nominaPercepciones === undefined || nominaDeducciones === undefined || nominaOtrosPagos === undefined) return '';
+
+        const rowOtrosPagos = nominaOtrosPagos.map<TableCell[]>((otroPago) => {
+            return [
+                'OP-'+otroPago.get('TipoOtroPago'),
+                otroPago.get('Clave'),
+                otroPago.get('Concepto'),
+                formatCurrency(0.00),
+                formatCurrency(otroPago.get('Importe'))
+            ];
+        })
+        const rowsPercepciones = nominaPercepciones.map<TableCell[]>((percepcion) => {
+            return [
+               'P-'+percepcion.get('TipoPercepcion'),
+                percepcion.get('Clave'),
+                percepcion.get('Concepto'),
+                formatCurrency(percepcion.get('ImporteGravado')),
+                formatCurrency(percepcion.get('ImporteExcento'))
+            ];
+        });
+        rowOtrosPagos.forEach(pago => {
+            rowsPercepciones.push(pago);
+        });
+        rowsPercepciones.unshift(['Tipo Percepción', 'Clave', 'Concepto', 'Importe Gravado', 'Importe Excento']);
+        
+        const rowsDeducciones = nominaDeducciones.map<TableCell[]>((deduccion) => {
+            return [
+                deduccion.get('TipoDeduccion'),
+                deduccion.get('Clave'),
+                deduccion.get('Concepto'),
+                formatCurrency(deduccion.get('Importe'))
+            ];
+        });
+        rowsDeducciones.unshift(['Tipo Deducción', 'Clave', 'Concepto', 'Importe']);
+        return {
+            style: 'tableContent',
+            table: {
+                widths: ['60%', '40%'],
+                body: [
+                    [
+                        {
+                            text: 'Percepciones',
+                            style: 'tableHeader',
+                            alignment: 'left'
+                        },
+                        {
+                            text: 'Deducciones',
+                            style: 'tableHeader',
+                            alignment: 'left'
+                        }
+                    ],
+                    [
+                        {
+                            style: 'tableList',
+                            table: {
+                                widths: ['auto', 'auto', 'auto', 'auto', 'auto'],
+                                body: rowsPercepciones
+                            },
+                            layout: {
+                                fillColor(i): string | null {
+                                    return i === 0 ? '#CCCCCC' : null;
+                                }
+                            }
+                        },
+                        {
+                            style: 'tableList',
+                            table: {
+                                widths: ['auto', 'auto', 'auto', 'auto'],
+                                body: rowsDeducciones
+                            },
+                            layout: {
+                                fillColor(i): string | null {
+                                    return i === 0 ? '#CCCCCC' : null;
+                                }
+                            }
+                        }
+                    ]
+                ]
+            },
+            layout: {
+                fillColor(i): string | null {
+                    return i === 0 ? '#CCCCCC' : null;
+                }
+            }
+        };
+    }
+
     protected generateContent(cfdiData: CfdiData): Content {
         const comprobante = cfdiData.comprobante();
         const emisor = cfdiData.emisor();
@@ -488,29 +688,44 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
         content.push('\n');
         content.push(this.generateEmisorContent(emisor));
         content.push('\n');
+        if (comprobante.get('TipoDeComprobante') !== 'N') {
+        content.push(this.generateReceptorContent(receptor, cfdiData.address()));
+        content.push('\n');
+        }
         if (additionalFields2) {
             additionalFields2.forEach((element) => {
                 content.push({
                     style: 'tableContent',
                     table: {
                         widths: ['*'],
-                        body: [[{ text: element.title, style: 'tableHeader' }], [{text:element.value, style: 'infoHighlight'}]]
+                        body: [
+                            [{ text: element.title, style: 'tableHeader' }],
+                            [{ text: element.value, style: 'infoHighlight' }]
+                        ]
                     },
                     layout: 'lightHorizontalLines'
                 });
                 content.push('\n');
             });
         }
-        
-        content.push(this.generateReceptorContent(receptor, cfdiData.address()));
-        content.push('\n');
         if (comprobante.get('TipoDeComprobante') !== 'P') {
             this.useGlobalInformation(comprobante, content);
             content.push(this.generateGeneralInvoiceInfoContent(comprobante));
             content.push('\n');
         }
+        if (comprobante.get('TipoDeComprobante') === 'N') {
+            //Implementar el contenido de nomina
+            //Temporal Nominas
+            content.push(this.generateNominaTopContent(comprobante));
+            content.push('\n');
+            content.push(this.generateNominaMiddleContent(comprobante));
+            content.push('\n');
+        }
+
+        if (comprobante.get('TipoDeComprobante') !== 'N') {
         content.push(this.generateConceptsContent(conceptos));
         content.push('\n');
+        }
         content.push(this.generateCurrencyRelatedInfo(comprobante));
         content.push('\n');
 
@@ -526,7 +741,10 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     style: 'tableContent',
                     table: {
                         widths: ['*'],
-                        body: [[{ text: element.title, style: 'tableHeader' }], [{text:element.value, style: 'infoHighlight'}]]
+                        body: [
+                            [{ text: element.title, style: 'tableHeader' }],
+                            [{ text: element.value, style: 'infoHighlight' }]
+                        ]
                     },
                     layout: 'lightHorizontalLines'
                 });

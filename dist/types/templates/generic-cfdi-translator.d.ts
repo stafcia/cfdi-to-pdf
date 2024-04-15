@@ -14,6 +14,8 @@ export declare class GenericCfdiTranslator implements DocumentTranslatorInterfac
     protected generateConceptsContent(conceptos: CNodes): Content;
     protected generateCurrencyRelatedInfo(comprobante: CNodeInterface): Content;
     protected generateStampContent(cfdiData: CfdiData): Content;
+    protected generateNominaTopContent(comprobante: CNodeInterface): Content;
+    protected generateNominaMiddleContent(comprobante: CNodeInterface): Content;
     protected generateContent(cfdiData: CfdiData): Content;
     translate(cfdiData: CfdiData, defaultStyle: Style): TDocumentDefinitions;
 }
