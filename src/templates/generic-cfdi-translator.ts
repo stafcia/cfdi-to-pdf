@@ -436,6 +436,20 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
             });
         }
         if(comprobante.get('TipoDeComprobante') === 'N'){
+            const deducciones = comprobante.searchAttribute(
+            'cfdi:Complemento',
+            'nomina12:Nomina',
+            'nomina12:Deducciones',
+            'TotalOtrasDeducciones'
+            );
+            const impRetenidos = comprobante.searchAttribute(
+                'cfdi:Complemento',
+                'nomina12:Nomina',
+                'nomina12:Deducciones',
+                'TotalImpuestosRetenidos'
+                );
+        if(deducciones=== undefined || impRetenidos=== undefined) return '';
+
             contentColumns.push({
                 width: 'auto',
                 alignment: 'right',
@@ -445,8 +459,8 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     widths: ['auto', 'auto'],
                     body: [
                         ['SUBTOTAL:', { text: formatCurrency(comprobante.get('SubTotal')), fontSize: 9 }],
-                        ['DESCUENTOS:', formatCurrency(comprobante.get('Descuento'))],
-                        ['RETENCIONES', formatCurrency(totalImpuestosRetenidos)],
+                        ['DESCUENTOS:', formatCurrency(deducciones)],
+                        ['RETENCIONES', formatCurrency(impRetenidos)],
                         [
                             {
                                 text: 'TOTAL RECIBO:',
@@ -560,8 +574,8 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                         'NSS: \t' + nominaReceptor.get('NumSeguridadSocial'),
                         'SBC: \t' + nominaReceptor.get('SalarioBaseCotApor')
                     ],
-                    ['TIPO SALARIO: \t' + nominaReceptor.get('Curp'), ''],
-                    ['DOMICILIO FISCAL: \t' + receptor.get('DomicilioFiscalReceptor'), '']
+                    ['TIPO SALARIO: \t' + 'MIXTO', 'SALARIO DIARIO: \t' + nominaReceptor.get('SalarioDiarioIntegrado')],
+                    ['DOMICILIO FISCAL: \t' + receptor.get('DomicilioFiscalReceptor'), 'REGIMEN FISCAL: \t' + receptor.get('RegimenFiscalReceptor')]
                 ]
             },
             layout: 'lightHorizontalLines'
@@ -611,7 +625,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
         rowOtrosPagos.forEach(pago => {
             rowsPercepciones.push(pago);
         });
-        rowsPercepciones.unshift(['Tipo Percepción', 'Clave', 'Concepto', 'Importe Gravado', 'Importe Excento']);
+        rowsPercepciones.unshift(['Tipo Percepción', 'Clave', 'Concepto', 'Importe Gravado', 'Importe Exento']);
         
         const rowsDeducciones = nominaDeducciones.map<TableCell[]>((deduccion) => {
             return [
@@ -777,7 +791,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                 serieAndFolio: {
                     bold: true,
                     fontSize: 15,
-                    color: 'red'
+                    color: 'green'
                 },
                 tableContent: {
                     fontSize: 8,
