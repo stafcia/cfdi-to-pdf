@@ -206,7 +206,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
             },
             layout: 'lightHorizontalLines'
         });
-        //currentContent.push('\n');
+        currentContent.push('\n');
     }
 
     protected generateGeneralInvoiceInfoContent(comprobante: CNodeInterface): Content {
@@ -324,9 +324,9 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
     }
 
     protected generateCurrencyRelatedInfo(comprobante: CNodeInterface): Content {
-        //const totalImpuestosTrasladados = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosTrasladados');
-        //const totalImpuestosRetenidos = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosRetenidos');
-        //const totalTasasTraslados = comprobante.searchNodes('cfdi:Impuestos', 'cfdi:Traslados', 'cfdi:Traslado');
+        const totalImpuestosTrasladados = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosTrasladados');
+        const totalImpuestosRetenidos = comprobante.searchAttribute('cfdi:Impuestos', 'TotalImpuestosRetenidos');
+        const totalTasasTraslados = comprobante.searchNodes('cfdi:Impuestos', 'cfdi:Traslados', 'cfdi:Traslado');
         const contentColumns: Column[] = [];
         const relatedInfoAndImport: Column[] = [];
         if (comprobante.get('TipoDeComprobante') !== 'P') {
@@ -408,6 +408,20 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     body: [
                         ['SUBTOTAL:', { text: formatCurrency(comprobante.get('SubTotal')), fontSize: 9 }],
                         ['DESCUENTO:', formatCurrency(comprobante.get('Descuento'))],
+                        [
+                            'SUBTOTAL T16:',
+                            formatCurrency(
+                                totalTasasTraslados[0] != undefined ? totalTasasTraslados[0].get('Base') : 0.0
+                            )
+                        ],
+                        [
+                            'SUBTOTAL T0:',
+                            formatCurrency(
+                                totalTasasTraslados[1] != undefined ? totalTasasTraslados[1].get('Base') : 0.0
+                            )
+                        ],
+                        ['TOTAL IMP. TRASLADADOS:', formatCurrency(totalImpuestosTrasladados)],
+                        ['TOTAL IMP. RETENIDOS:', formatCurrency(totalImpuestosRetenidos)],
                         [
                             {
                                 text: 'TOTAL:',
@@ -688,12 +702,12 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
 
         const content: Content[] = [];
         content.push(this.generateTopContent(comprobante, cfdiData.logo()));
-        //content.push('\n');
+        content.push('\n');
         content.push(this.generateEmisorContent(emisor));
-        //content.push('\n');
+        content.push('\n');
         if (comprobante.get('TipoDeComprobante') !== 'N') {
             content.push(this.generateReceptorContent(receptor, cfdiData.address()));
-            //content.push('\n');
+            content.push('\n');
         }
         if (additionalFields2) {
             additionalFields2.forEach((element) => {
@@ -708,13 +722,13 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                     },
                     layout: 'lightHorizontalLines'
                 });
-                //content.push('\n');
+                content.push('\n');
             });
         }
         if (comprobante.get('TipoDeComprobante') !== 'P') {
             this.useGlobalInformation(comprobante, content);
             content.push(this.generateGeneralInvoiceInfoContent(comprobante));
-            //content.push('\n');
+            content.push('\n');
         }
         if (comprobante.get('TipoDeComprobante') === 'N') {
             //Implementar el contenido de nomina
@@ -727,10 +741,10 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
 
         if (comprobante.get('TipoDeComprobante') !== 'N') {
             content.push(this.generateConceptsContent(conceptos));
-            //content.push('\n');
+            content.push('\n');
         }
         content.push(this.generateCurrencyRelatedInfo(comprobante));
-        //content.push('\n');
+        content.push('\n');
 
         /** Area of complements */
         usePago10Complement(comprobante, content);
@@ -780,7 +794,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
                 serieAndFolio: {
                     bold: true,
                     fontSize: 15,
-                    color: 'red'
+                    color: 'green'
                 },
                 tableContent: {
                     fontSize: 8,
