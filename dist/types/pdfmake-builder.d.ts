@@ -1,5 +1,6 @@
 /// <reference types="node" />
 /// <reference types="node" />
+/// <reference types="node" />
 import { BufferOptions, CustomTableLayout, TDocumentDefinitions, TFontDictionary } from 'pdfmake/interfaces';
 export interface PdfKitDocument extends NodeJS.ReadableStream {
     end(): void;

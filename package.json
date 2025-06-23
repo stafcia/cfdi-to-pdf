@@ -83,7 +83,8 @@
     "dependencies": {
         "@nodecfdi/cfdi-expresiones": "^2.1.2",
         "@nodecfdi/cfdiutils-common": "^1.2.1",
-        "pdfmake": "^0.2.5"
+        "pdfmake": "^0.2.5",
+        "pnpm": "^10.2.1"
     },
     "engines": {
         "node": ">= 14.0.0"

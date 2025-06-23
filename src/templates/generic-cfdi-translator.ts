@@ -121,7 +121,16 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
         const tableCell: TableCell[][] = [];
         const cellAddress: TableCell[] = [];
         if (address || receptor.offsetExists('DomicilioFiscalReceptor')) {
-            cellAddress.push('DOMICILIO:', `${address ? address + ' ' : ''}${receptor.get('DomicilioFiscalReceptor')}`);
+            //verifica si el domicilio contiene el codigo postal 91914-0000
+            if (address && address.includes('91914-0000')) {
+                address = address.replace('91914-0000', '91914');
+                cellAddress.push('DOMICILIO:', `${address ? address + ' ' : ''}`);
+            } else {
+                cellAddress.push(
+                    'DOMICILIO:',
+                    `${address ? address + ' ' : ''}${receptor.get('DomicilioFiscalReceptor')}`
+                );
+            }
         }
         cellAddress.push('USO CFDI', {
             colSpan: address || receptor.offsetExists('DomicilioFiscalReceptor') ? 1 : 3,
