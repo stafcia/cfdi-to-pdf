@@ -121,9 +121,7 @@ export class GenericCfdiTranslator implements DocumentTranslatorInterface<CfdiDa
         const tableCell: TableCell[][] = [];
         const cellAddress: TableCell[] = [];
         if (address || receptor.offsetExists('DomicilioFiscalReceptor')) {
-            //verifica si el domicilio contiene el codigo postal 91914-0000
-            if (address && address.includes('91914-0000')) {
-                address = address.replace('91914-0000', '91914');
+            if (address && address.includes('91914')) {
                 cellAddress.push('DOMICILIO:', `${address ? address + ' ' : ''}`);
             } else {
                 cellAddress.push(
